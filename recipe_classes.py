@@ -1,32 +1,34 @@
-class Recipe:
+class _Recipe:
 
     def __init__(self, name='', ingredients=set(), styles=set()):
         self.name = name
         self.ingredients = ingredients
         self.styles = styles
 
-    def add_ingredients(self, ingredients=set()):
+    def add_ingredients(self, ingredients):
         self.ingredients = self.ingredients.union(ingredients)
 
-    def add_styles(self, styles=set()):
+    def add_styles(self, styles):
         self.styles = self.styles.union(styles)
 
-    def delete_ingredients(self, ingredients=set()):
+    def delete_ingredients(self, ingredients):
         self.ingredients = self.ingredients.difference(ingredients)
 
-    def delete_styles(self, styles=set()):
+    def delete_styles(self, styles):
         self.styles = self.styles.difference(styles)
 
     def rename(self, name):
         self.name = name
     
-    def rename_ingredient(self, ingredient, new_name):
-        self.ingredients.remove(ingredient)
-        self.ingredients.add(new_name)
+    def rename_ingredient(self, old_name, new_name):
+        if old_name in self.ingredients:
+            self.ingredients.remove(old_name)
+            self.ingredients.add(new_name)
 
-    def rename_style(self, style, new_name):
-        self.styles.remove(style)
-        self.styles.add(new_name)
+    def rename_style(self, old_name, new_name):
+        if old_name in self.styles:
+            self.styles.remove(old_name)
+            self.styles.add(new_name)
 
     def repr_JSON(self):
         return {'__recipe__': True, 'name': self.name, 'ingredients': list(self.ingredients), 'styles': list(self.styles)}
@@ -38,7 +40,7 @@ class RecipeBook:
         self.recipes = recipes
 
     def add_recipe(self, name, ingredients, styles):
-        new_recipe = Recipe(name, ingredients, styles)
+        new_recipe = _Recipe(name, ingredients, styles)
         self.recipes[name] = new_recipe
 
     def delete_recipe(self, recipe):
@@ -52,12 +54,12 @@ class RecipeBook:
             self.recipes.pop(recipe)
     
     def rename_recipe_ingredient(self, recipe, ingredient, new_name):
-        if recipe in self.recipes and ingredient in self.recipes[recipe].ingredients:
-                self.recipes[recipe].rename_ingredient(ingredient, new_name)
+        if recipe in self.recipes:
+            self.recipes[recipe].rename_ingredient(ingredient, new_name)
 
     def rename_recipe_style(self, recipe, style, new_name):
-        if recipe in self.recipes and style in self.recipes[recipe].styles:
-                self.recipes[recipe].rename_style(style, new_name)
+        if recipe in self.recipes:
+            self.recipes[recipe].rename_style(style, new_name)
 
     def add_recipe_ingredients(self, recipe, ingredients):
         if recipe in self.recipes:
@@ -78,24 +80,24 @@ class RecipeBook:
     def get_recipes_by_ingredients(self, ingredients):
         recipes = {}
         for recipe in self.recipes:
-            ingred_matches = []
+            matches = []
             for ingredient in ingredients:
                 if ingredient in self.recipes[recipe].ingredients:
-                    ingred_matches.append(ingredient)
-            if len(ingred_matches) > 0:
-                recipes[recipe] = ingred_matches
+                    matches.append(ingredient)
+            if len(matches) > 0:
+                recipes[recipe] = matches
         recipes = {r: l for r, l in sorted(recipes.items(), key=lambda item: len(item[1]), reverse=True)}
         return recipes
         
     def get_recipes_by_styles(self, styles):
         recipes = {}
         for recipe in self.recipes:
-            style_matches = []
+            matches = []
             for style in styles:
                 if style in self.recipes[recipe].styles:
-                    style_matches.append(style)
-            if len(style_matches) > 0:
-                recipes[recipe] = style_matches
+                    matches.append(style)
+            if len(matches) > 0:
+                recipes[recipe] = matches
         recipes = {r: l for r, l in sorted(recipes.items(), key=lambda item: len(item[1]), reverse=True)}
         if len(recipes) > 0:
             return recipes
