@@ -52,13 +52,11 @@ class RecipeBook:
             self.recipes.pop(recipe)
     
     def rename_recipe_ingredient(self, recipe, ingredient, new_name):
-        if recipe in self.recipes:
-            if ingredient in self.recipes[recipe].ingredients:
+        if recipe in self.recipes and ingredient in self.recipes[recipe].ingredients:
                 self.recipes[recipe].rename_ingredient(ingredient, new_name)
 
     def rename_recipe_style(self, recipe, style, new_name):
-        if recipe in self.recipes:
-            if style in self.recipes[recipe].styles:
+        if recipe in self.recipes and style in self.recipes[recipe].styles:
                 self.recipes[recipe].rename_style(style, new_name)
 
     def add_recipe_ingredients(self, recipe, ingredients):
