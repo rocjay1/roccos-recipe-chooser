@@ -1,0 +1,1 @@
+{"__recipe_book__": true, "name": "main", "recipes": {"appleandpeanutbutter": {"__recipe__": true, "name": "appleandpeanutbutter", "ingredients": ["apple", "peanutbutter"], "styles": ["snack", "fruit"]}, "foo bar": {"__recipe__": true, "name": "foo bar", "ingredients": ["foos"], "styles": ["bars"]}}}
