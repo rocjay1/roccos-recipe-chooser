@@ -1,9 +1,14 @@
 from tkinter import *
 from tkinter import ttk
+from read_write import *
+import textwrap
 
 class RecipeApp:
 
     def __init__(self, root):
+
+        self.db = read_JSON("recipes.json")
+
         #################################
         ########## Upper frame ##########
         #################################
@@ -40,9 +45,9 @@ class RecipeApp:
         recipe_label = ttk.Label(frame_upper, text = "Recipe:")
         ings_label = ttk.Label(frame_upper, text = "Ingredients:")
         styles_label = ttk.Label(frame_upper, text = "Styles:")
-        recipe_entry = ttk.Entry(frame_upper)
-        ings_entry = ttk.Entry(frame_upper)
-        styles_entry = ttk.Entry(frame_upper)
+        self.recipe_entry = ttk.Entry(frame_upper)
+        self.ings_entry = ttk.Entry(frame_upper)
+        self.styles_entry = ttk.Entry(frame_upper)
         add_btn = ttk.Button(frame_upper, text = 'Add')
         remove_btn = ttk.Button(frame_upper, text = 'Remove')
         update_btn = ttk.Button(frame_upper, text = 'Update')
@@ -68,9 +73,9 @@ class RecipeApp:
         recipe_label.grid(row = 5, column = 0, sticky='e')
         ings_label.grid(row = 6, column = 0, sticky='e')
         styles_label.grid(row = 7, column = 0, sticky='e')
-        recipe_entry.grid(row = 5, column = 1, columnspan=3, sticky='ew')
-        ings_entry.grid(row = 6, column = 1, columnspan=3, sticky='ew')
-        styles_entry.grid(row = 7, column = 1, columnspan=3, sticky='ew')
+        self.recipe_entry.grid(row = 5, column = 1, columnspan=3, sticky='ew')
+        self.ings_entry.grid(row = 6, column = 1, columnspan=3, sticky='ew')
+        self.styles_entry.grid(row = 7, column = 1, columnspan=3, sticky='ew')
         add_btn.grid(row=8, column=0, sticky="e", pady=10)
         remove_btn.grid(row=8, column=1, sticky="ew")
         update_btn.grid(row=8, column=2, sticky="ew")
@@ -81,32 +86,73 @@ class RecipeApp:
         ################################# 
 
         # Vars
-        self.columns = ['Recipe', 'Ingredients', 'Styles']
 
         # Widgets
         frame_lower = ttk.Frame(root)
         frame_lower.config(padding=(10,18))
 
-        recipe_treeview = ttk.Treeview(frame_lower, columns=self.columns, show='headings')
-        recipe_treeview.column('Recipe', width=150)
-        recipe_treeview.heading('Recipe', text='Recipe')
-        recipe_treeview.column('Ingredients', width=250)
-        recipe_treeview.heading('Ingredients', text='Ingredients')
-        recipe_treeview.column('Styles', width=250)
-        recipe_treeview.heading('Styles', text='Styles')
+        self.recipe_treeview = ttk.Treeview(frame_lower)
+        self.recipe_treeview.column("#0", width=250)
+        self.recipe_treeview.bind('<<TreeviewSelect>>', self.select_recipe)
 
-        scrollbar = ttk.Scrollbar(frame_lower, orient=VERTICAL, command=recipe_treeview.yview)
-        recipe_treeview.config(yscrollcommand=scrollbar.set)
+        scrollbar = ttk.Scrollbar(frame_lower, orient=VERTICAL, command=self.recipe_treeview.yview)
+        self.recipe_treeview.config(yscrollcommand=scrollbar.set)
 
         # Geometry
         frame_lower.grid(row=0, column=1, sticky='ns')
 
-        recipe_treeview.pack(side=LEFT, fill=Y)
+        self.recipe_treeview.pack(side=LEFT, fill=Y)
 
         scrollbar.pack(side=RIGHT, fill=Y)
 
+    def populate_from_recipebook(self):
+        for child in self.recipe_treeview.get_children():
+            self.recipe_treeview.delete(child)
+        for recipe in self.db.recipes:
+            self.recipe_treeview.insert('', 'end', f'{recipe}', text=f'{recipe}')
+            self.recipe_treeview.insert(f'{recipe}', 'end', f'{recipe} ingredients', 
+                text="Ingredients")
+            for ingredient in self.db.recipes[recipe].ingredients:
+                self.recipe_treeview.insert(f'{recipe} ingredients', 'end', f'{ingredient}', 
+                    text=f'{ingredient}')
+            self.recipe_treeview.insert(f'{recipe}', 'end', f'{recipe} styles', text="Styles")
+            for style in self.db.recipes[recipe].styles:
+                self.recipe_treeview.insert(f'{recipe} styles', 'end', f'{style}', text=f'{style}')
+
+    def open_children(self, parent):
+        self.recipe_treeview.item(parent, open=True)
+        for child in self.recipe_treeview.get_children(parent):
+            self.open_children(child)
+
+    def close_children(self, parent):
+        self.recipe_treeview.item(parent, open=False)
+        for child in self.recipe_treeview.get_children(parent):
+            self.open_children(child)
+
+    def select_recipe(self, event):
+        for child in self.recipe_treeview.get_children():
+            self.close_children(child)
+
+        node = self.recipe_treeview.focus()
+        if self.recipe_treeview.parent(node) == '':
+            self.open_children(node)
+
+            self.recipe_entry.delete(0, END)
+            self.recipe_entry.insert(END, self.recipe_treeview.item(node)['text'])
+
+            ings_node = self.recipe_treeview.get_children(node)[0]
+            ings = self.recipe_treeview.get_children(ings_node)
+            self.ings_entry.delete(0, END)
+            self.ings_entry.insert(END, ", ".join(ings))
+
+            styles_node = self.recipe_treeview.get_children(node)[1]
+            styles = self.recipe_treeview.get_children(styles_node)
+            self.styles_entry.delete(0, END)
+            self.styles_entry.insert(END, ", ".join(styles))
+                 
 
 if __name__ == '__main__':
     master = Tk()
     app = RecipeApp(master)
+    app.populate_from_recipebook()
     master.mainloop()
