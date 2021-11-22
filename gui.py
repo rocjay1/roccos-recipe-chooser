@@ -134,14 +134,14 @@ class RecipeApp:
 
     def insert_recipe(self, recipe, index='end'):
         self.recipe_treeview.insert('', str(index), f'name_{recipe}', text=f'{recipe}')
-        self.recipe_treeview.insert(f'name_{recipe}', 'end', f'ings_{recipe}', 
+        self.recipe_treeview.insert(f'name_{recipe}', 'end', f'name_{recipe}_ing', 
             text="Ingredients")
         for ingredient in self.db.recipes[recipe].ingredients:
-            self.recipe_treeview.insert(f'ings_{recipe}', 'end', f'ing_{ingredient}', 
+            self.recipe_treeview.insert(f'name_{recipe}_ing', 'end', f'name_{recipe}_ing_{ingredient}', 
                 text=f'{ingredient}')
-        self.recipe_treeview.insert(f'name_{recipe}', 'end', f'styles_{recipe}', text="Styles")
+        self.recipe_treeview.insert(f'name_{recipe}', 'end', f'name_{recipe}_style', text="Styles")
         for style in self.db.recipes[recipe].styles:
-            self.recipe_treeview.insert(f'styles_{recipe}', 'end', f'style_{style}', text=f'{style}')
+            self.recipe_treeview.insert(f'name_{recipe}_style', 'end', f'name_{recipe}_style_{style}', text=f'{style}')
     
     def delete_recipe(self, recipe):
         self.recipe_treeview.delete(f'name_{recipe}')
@@ -204,7 +204,7 @@ class RecipeApp:
         styles = self.format_to_list(self.styles_text.get())
         self.db.add_recipe(name, ings, styles)
         self.insert_recipe(name)
-        self.recipe_treeview.selection_add(f'name_{name}')
+        self.recipe_treeview.selection_set(f'name_{name}')
 
     def update_recipe(self):
         # If nothing selected...
@@ -216,7 +216,7 @@ class RecipeApp:
         i = self.recipe_treeview.index(f'name_{sel_recipe}')
         self.delete_recipe(sel_recipe)
         self.insert_recipe(name, i)
-        self.recipe_treeview.selection_add(f'name_{name}')
+        self.recipe_treeview.selection_set(f'name_{name}')
         
 
 if __name__ == '__main__':

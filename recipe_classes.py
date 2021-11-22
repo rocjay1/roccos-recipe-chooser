@@ -5,38 +5,38 @@ class Recipe:
         self.ingredients = ingredients
         self.styles = styles
 
-    def add_ingredients(self, ingredients):
-        self.ingredients = self.ingredients.union(ingredients)
+    # def add_ingredients(self, ingredients):
+    #     self.ingredients = self.ingredients.union(ingredients)
 
-    def add_styles(self, styles):
-        self.styles = self.styles.union(styles)
+    # def add_styles(self, styles):
+    #     self.styles = self.styles.union(styles)
 
-    def delete_ingredients(self, ingredients):
-        self.ingredients = self.ingredients.difference(ingredients)
+    # def delete_ingredients(self, ingredients):
+    #     self.ingredients = self.ingredients.difference(ingredients)
 
-    def delete_styles(self, styles):
-        self.styles = self.styles.difference(styles)
+    # def delete_styles(self, styles):
+    #     self.styles = self.styles.difference(styles)
 
     def rename(self, name):
         self.name = name
     
-    def rename_ingredient(self, old_name, new_name):
-        if self.check_ingredient(old_name):
-            self.ingredients.remove(old_name)
-            self.ingredients.add(new_name)
+    # def rename_ingredient(self, old_name, new_name):
+    #     if self.check_ingredient(old_name):
+    #         self.ingredients.remove(old_name)
+    #         self.ingredients.add(new_name)
 
-    def rename_style(self, old_name, new_name):
-        if self.check_style(old_name):
-            self.styles.remove(old_name)
-            self.styles.add(new_name)
+    # def rename_style(self, old_name, new_name):
+    #     if self.check_style(old_name):
+    #         self.styles.remove(old_name)
+    #         self.styles.add(new_name)
 
-    def check_ingredient(self, ingredient):
-        if ingredient in self.ingredients:
-            return True
+    # def check_ingredient(self, ingredient):
+    #     if ingredient in self.ingredients:
+    #         return True
 
-    def check_style(self, style):
-        if style in self.styles:
-            return True
+    # def check_style(self, style):
+    #     if style in self.styles:
+    #         return True
 
     def repr_JSON(self):
         return {'__recipe__': True, 'name': self.name, 'ingredients': list(self.ingredients), 'styles': list(self.styles)}
@@ -99,64 +99,3 @@ class RecipeBook:
         return {'__recipe_book__': True, 'name': self.name, 'recipes': self.recipes}
 
 if __name__ == '__main__': pass
-
-# def rename_recipe_ingredient(self, recipe, ingredient, new_name):
-    #     if recipe in self.recipes:
-    #         self.recipes[recipe].rename_ingredient(ingredient, new_name)
-
-    # def rename_recipe_style(self, recipe, style, new_name):
-    #     if recipe in self.recipes:
-    #         self.recipes[recipe].rename_style(style, new_name)
-
-    # def add_recipe_ingredients(self, recipe, ingredients):
-    #     if recipe in self.recipes:
-    #         self.recipes[recipe].add_ingredients(set(ingredients))
-    
-    # def delete_recipe_ingredients(self, recipe, ingredients):
-    #     if recipe in self.recipes:
-    #         self.recipes[recipe].delete_ingredients(set(ingredients))
-
-    # def add_recipe_styles(self, recipe, styles):
-    #     if recipe in self.recipes:
-    #         self.recipes[recipe].add_styles(set(styles))
-    
-    # def delete_recipe_styles(self, recipe, styles):
-    #     if recipe in self.recipes:
-    #         self.recipes[recipe].delete_styles(set(styles))
-
-    # def check_ingredients(self, ingredients):
-    #     all_ings = list()
-    #     for recipe in self.recipes:
-    #         all_ings += self.recipes[recipe].ingredients
-    #     missing_ings = list(set(ingredients).difference(set(all_ings)))
-    #     if len(missing_ings) > 0: 
-    #         return missing_ings
-
-    # def check_styles(self, styles):
-    #     all_styles = list()
-    #     for recipe in self.recipes:
-    #         all_styles += self.recipes[recipe].styles
-    #     missing_styles = list(set(styles).difference(set(all_styles)))
-    #     if len(missing_styles) > 0:
-    #         return missing_styles
-
-    # def list_recipes(self):
-    #     recipes = ""
-    #     for recipe in self.recipes:
-    #         recipes += f'{self.recipes[recipe].name}, {self.recipes[recipe].ingredients}, {self.recipes[recipe].styles}\n'
-    #     if recipes != "":
-    #         return recipes
-
-    # def list_ingredients(self):
-    #     all_ings = list()
-    #     for recipe in self.recipes:
-    #         all_ings += self.recipes[recipe].ingredients
-    #     if len(all_ings) > 0:
-    #         return set(all_ings)
-
-    # def list_styles(self):
-    #     all_styles = list()
-    #     for recipe in self.recipes:
-    #         all_styles += self.recipes[recipe].styles
-    #     if len(all_styles) > 0:
-    #         return set(all_styles)
