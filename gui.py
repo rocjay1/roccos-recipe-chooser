@@ -143,41 +143,44 @@ class RecipeApp:
                 self.recipe_treeview.insert(f'styles_{recipe}', 'end', f'style_{style}', text=f'{style}')
 
     def select_recipe(self, event):
+        # Refresh tree
         for child in self.recipe_treeview.get_children():
             self.close_children(child)
-
+        
+        # If nothing is selected, do nothing
+        if not self.recipe_treeview.selection():
+            return
+        
+        # Otherwise, if a recipe is selected, display contents and populate entry fields
         node = self.recipe_treeview.selection()[0]
         if self.recipe_treeview.parent(node) == '':
             self.open_children(node)
 
+            # Populate name
             self.recipe_entry.delete(0, END)
             self.recipe_entry.insert(END, self.recipe_treeview.item(node)['text'])
 
-            ings_node = self.recipe_treeview.get_children(node)[0]
-            ings_node_children = self.recipe_treeview.get_children(ings_node)
-            ing_str = ''
-            for child in ings_node_children:
-                ing = self.recipe_treeview.item(child)['text']
-                if ing_str == '':
-                    ing_str += ing
-                else:
-                    ing_str += f', {ing}'
-            self.ings_entry.delete(0, END)
-            self.ings_entry.insert(END, ing_str)
+            # Populate ingredients and styles
+            attrs = []
+            for i in range(0, 2):
+                p_node = self.recipe_treeview.get_children(node)[i]
+                children = self.recipe_treeview.get_children(p_node)
+                fin_str = ''
+                for child in children:
+                    add_str = self.recipe_treeview.item(child)['text']
+                    if fin_str == '':
+                        fin_str += add_str
+                    else:
+                        fin_str += f', {add_str}'
+                attrs.append(fin_str)
 
-            styles_node = self.recipe_treeview.get_children(node)[1]
-            styles_node_children = self.recipe_treeview.get_children(styles_node)
-            style_str = ''
-            for child in styles_node_children:
-                style = self.recipe_treeview.item(child)['text']
-                if style_str == '':
-                    style_str += style
-                else:
-                    style_str += f', {style}'
+            self.ings_entry.delete(0, END)
+            self.ings_entry.insert(END, attrs[0])
             self.styles_entry.delete(0, END)
-            self.styles_entry.insert(END, style_str)
+            self.styles_entry.insert(END, attrs[1])
 
     def clear_text(self):
+        self.recipe_treeview.selection_remove(self.recipe_treeview.focus())
         self.recipe_entry.delete(0, END)
         self.ings_entry.delete(0, END)
         self.styles_entry.delete(0, END)
@@ -189,9 +192,8 @@ class RecipeApp:
         self.db.add_recipe(name, ings, styles)
         self.clear_text()
         self.populate_from_recipebook()
-        self.recipe_treeview.selection_add(f'name_{name}')
         
-        
+
 if __name__ == '__main__':
     master = Tk()
     app = RecipeApp(master)
