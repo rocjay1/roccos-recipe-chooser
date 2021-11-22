@@ -54,7 +54,7 @@ class RecipeBook:
     def add_recipe(self, name, ingredients, styles):
         if self.check_recipe(name):
             return 
-        new_recipe = Recipe(name, ingredients, styles)
+        new_recipe = Recipe(name, set(ingredients), set(styles))
         self.recipes[name] = new_recipe
 
     def delete_recipe(self, recipe):
