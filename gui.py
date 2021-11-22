@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import ttk
+from types import coroutine
 from read_write import *
 from recipe_classes import *
 
@@ -19,6 +20,7 @@ class RecipeApp:
         self.get_text = StringVar()
         self.search_text = StringVar()
         self.recipe_text = StringVar()
+        
         self.ings_text = StringVar()
         self.styles_text = StringVar()
 
@@ -34,14 +36,12 @@ class RecipeApp:
         get_entry = ttk.Entry(frame_upper)
         get_btn = ttk.Button(frame_upper, text='Submit')
 
-        # sep1 = ttk.Separator(frame_upper, orient=HORIZONTAL)
         sep1 = ttk.Label(frame_upper, text="")
 
         search_label = ttk.Label(frame_upper, text='Search by name:')
         search_entry = ttk.Entry(frame_upper)
         search_btn = ttk.Button(frame_upper, text='Search')
 
-        # sep2 = ttk.Separator(frame_upper, orient=HORIZONTAL)
         sep2 = ttk.Label(frame_upper, text="")
 
         recipe_label = ttk.Label(frame_upper, text="Recipe:")
@@ -52,7 +52,7 @@ class RecipeApp:
         self.styles_entry = ttk.Entry(frame_upper, textvariable=self.styles_text)
         add_btn = ttk.Button(frame_upper, text='Add', command=self.add_recipe)
         remove_btn = ttk.Button(frame_upper, text='Remove')
-        update_btn = ttk.Button(frame_upper, text='Update')
+        update_btn = ttk.Button(frame_upper, text='Update', command=self.update_recipe)
         clear_btn = ttk.Button(frame_upper, text='Clear', command=self.clear_text)
 
         # Geometry
@@ -119,21 +119,21 @@ class RecipeApp:
     
     # Treeview helper methods
 
-    def open_children(self, parent):
+    def open_node_children(self, parent):
         self.recipe_treeview.item(parent, open=True)
         for child in self.recipe_treeview.get_children(parent):
-            self.open_children(child)
+            self.open_node_children(child)
 
-    def close_children(self, parent):
+    def close_node_children(self, parent):
         self.recipe_treeview.item(parent, open=False)
         for child in self.recipe_treeview.get_children(parent):
-            self.open_children(child)
+            self.open_node_children(child)
 
     def delete_all_children(self):
         self.recipe_treeview.delete(*self.recipe_treeview.get_children())
 
-    def insert_recipe(self, recipe):
-        self.recipe_treeview.insert('', 'end', f'name_{recipe}', text=f'{recipe}')
+    def insert_recipe(self, recipe, index='end'):
+        self.recipe_treeview.insert('', str(index), f'name_{recipe}', text=f'{recipe}')
         self.recipe_treeview.insert(f'name_{recipe}', 'end', f'ings_{recipe}', 
             text="Ingredients")
         for ingredient in self.db.recipes[recipe].ingredients:
@@ -142,6 +142,9 @@ class RecipeApp:
         self.recipe_treeview.insert(f'name_{recipe}', 'end', f'styles_{recipe}', text="Styles")
         for style in self.db.recipes[recipe].styles:
             self.recipe_treeview.insert(f'styles_{recipe}', 'end', f'style_{style}', text=f'{style}')
+    
+    def delete_recipe(self, recipe):
+        self.recipe_treeview.delete(f'name_{recipe}')
 
     # Main methods
 
@@ -153,7 +156,7 @@ class RecipeApp:
     def select_recipe(self, event):
         # Refresh tree
         for child in self.recipe_treeview.get_children():
-            self.close_children(child)
+            self.close_node_children(child)
         
         # If nothing is selected, do nothing
         if not self.recipe_treeview.selection():
@@ -161,8 +164,10 @@ class RecipeApp:
         
         # Otherwise, if a recipe is selected, display contents and populate entry fields
         node = self.recipe_treeview.selection()[0]
+        global sel_recipe
+        sel_recipe = self.recipe_treeview.item(node)['text']
         if self.recipe_treeview.parent(node) == '':
-            self.open_children(node)
+            self.open_node_children(node)
 
             # Populate name
             self.recipe_entry.delete(0, END)
@@ -199,6 +204,18 @@ class RecipeApp:
         styles = self.format_to_list(self.styles_text.get())
         self.db.add_recipe(name, ings, styles)
         self.insert_recipe(name)
+        self.recipe_treeview.selection_add(f'name_{name}')
+
+    def update_recipe(self):
+        # If nothing selected...
+        
+        name = self.format_to_string(self.recipe_text.get())
+        ings = self.format_to_list(self.ings_text.get())
+        styles = self.format_to_list(self.styles_text.get())
+        self.db.update_recipe(sel_recipe, name, ings, styles)
+        i = self.recipe_treeview.index(f'name_{sel_recipe}')
+        self.delete_recipe(sel_recipe)
+        self.insert_recipe(name, i)
         self.recipe_treeview.selection_add(f'name_{name}')
         
 

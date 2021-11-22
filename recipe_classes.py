@@ -61,11 +61,21 @@ class RecipeBook:
         if self.check_recipe(recipe):
             self.recipes.pop(recipe)
 
-    def rename_recipe(self, old_name, new_name):
-        if self.check_recipe(old_name):
+    def update_recipe(self, old_name, new_name, ingredients, styles):
+        if self.check_recipe(new_name):
+            pass
+        else:
             self.recipes[old_name].rename(new_name)
             self.recipes[new_name] = self.recipes[old_name]
             self.recipes.pop(old_name)
+        self.recipes[new_name].ingredients = set(ingredients)
+        self.recipes[new_name].styles = set(styles)
+
+    # def rename_recipe(self, old_name, new_name):
+    #     if self.check_recipe(old_name):
+    #         self.recipes[old_name].rename(new_name)
+    #         self.recipes[new_name] = self.recipes[old_name]
+    #         self.recipes.pop(old_name)
 
     def get_recipes_by_attr(self, attr, names):
         if attr not in ['ing', 'sty']:
