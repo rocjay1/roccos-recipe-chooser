@@ -1,8 +1,6 @@
 from tkinter import *
 from tkinter import ttk
-from types import coroutine
-from read_write import *
-from recipe_classes import *
+from backend import *
 
 class RecipeApp:
 
@@ -20,7 +18,6 @@ class RecipeApp:
         self.get_text = StringVar()
         self.search_text = StringVar()
         self.recipe_text = StringVar()
-        
         self.ings_text = StringVar()
         self.styles_text = StringVar()
 
@@ -97,7 +94,8 @@ class RecipeApp:
         self.recipe_treeview.column("#0", width=250)
         self.recipe_treeview.bind('<<TreeviewSelect>>', self.select_recipe)
 
-        scrollbar = ttk.Scrollbar(frame_lower, orient=VERTICAL, command=self.recipe_treeview.yview)
+        scrollbar = ttk.Scrollbar(frame_lower, orient=VERTICAL, 
+            command=self.recipe_treeview.yview)
         self.recipe_treeview.config(yscrollcommand=scrollbar.set)
 
         # Geometry
@@ -134,14 +132,18 @@ class RecipeApp:
 
     def insert_recipe(self, recipe, index='end'):
         self.recipe_treeview.insert('', str(index), f'name_{recipe}', text=f'{recipe}')
-        self.recipe_treeview.insert(f'name_{recipe}', 'end', f'name_{recipe}_ing', 
-            text="Ingredients")
+
+        self.recipe_treeview.insert(f'name_{recipe}', 'end', 
+            f'name_{recipe}_ing', text="Ingredients")
         for ingredient in self.db.recipes[recipe].ingredients:
-            self.recipe_treeview.insert(f'name_{recipe}_ing', 'end', f'name_{recipe}_ing_{ingredient}', 
-                text=f'{ingredient}')
-        self.recipe_treeview.insert(f'name_{recipe}', 'end', f'name_{recipe}_style', text="Styles")
+            self.recipe_treeview.insert(f'name_{recipe}_ing', 'end', 
+                f'name_{recipe}_ing_{ingredient}', text=f'{ingredient}')
+
+        self.recipe_treeview.insert(f'name_{recipe}', 'end', 
+            f'name_{recipe}_style', text="Styles")
         for style in self.db.recipes[recipe].styles:
-            self.recipe_treeview.insert(f'name_{recipe}_style', 'end', f'name_{recipe}_style_{style}', text=f'{style}')
+            self.recipe_treeview.insert(f'name_{recipe}_style', 'end', 
+                f'name_{recipe}_style_{style}', text=f'{style}')
     
     def delete_recipe(self, recipe):
         self.recipe_treeview.delete(f'name_{recipe}')
@@ -202,6 +204,9 @@ class RecipeApp:
         name = self.format_to_string(self.recipe_text.get())
         ings = self.format_to_list(self.ings_text.get())
         styles = self.format_to_list(self.styles_text.get())
+        # If name is already in recipe book...
+
+        # Else...
         self.db.add_recipe(name, ings, styles)
         self.insert_recipe(name)
         self.recipe_treeview.selection_set(f'name_{name}')

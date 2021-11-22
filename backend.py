@@ -1,3 +1,5 @@
+import json
+
 class Recipe:
 
     def __init__(self, name='', ingredients=set(), styles=set()):
@@ -5,41 +7,12 @@ class Recipe:
         self.ingredients = ingredients
         self.styles = styles
 
-    # def add_ingredients(self, ingredients):
-    #     self.ingredients = self.ingredients.union(ingredients)
-
-    # def add_styles(self, styles):
-    #     self.styles = self.styles.union(styles)
-
-    # def delete_ingredients(self, ingredients):
-    #     self.ingredients = self.ingredients.difference(ingredients)
-
-    # def delete_styles(self, styles):
-    #     self.styles = self.styles.difference(styles)
-
     def rename(self, name):
         self.name = name
-    
-    # def rename_ingredient(self, old_name, new_name):
-    #     if self.check_ingredient(old_name):
-    #         self.ingredients.remove(old_name)
-    #         self.ingredients.add(new_name)
-
-    # def rename_style(self, old_name, new_name):
-    #     if self.check_style(old_name):
-    #         self.styles.remove(old_name)
-    #         self.styles.add(new_name)
-
-    # def check_ingredient(self, ingredient):
-    #     if ingredient in self.ingredients:
-    #         return True
-
-    # def check_style(self, style):
-    #     if style in self.styles:
-    #         return True
 
     def repr_JSON(self):
-        return {'__recipe__': True, 'name': self.name, 'ingredients': list(self.ingredients), 'styles': list(self.styles)}
+        return {'__recipe__': True, 'name': self.name, 
+            'ingredients': list(self.ingredients), 'styles': list(self.styles)}
 
 class RecipeBook:
 
@@ -71,12 +44,6 @@ class RecipeBook:
         self.recipes[new_name].ingredients = set(ingredients)
         self.recipes[new_name].styles = set(styles)
 
-    # def rename_recipe(self, old_name, new_name):
-    #     if self.check_recipe(old_name):
-    #         self.recipes[old_name].rename(new_name)
-    #         self.recipes[new_name] = self.recipes[old_name]
-    #         self.recipes.pop(old_name)
-
     def get_recipes_by_attr(self, attr, names):
         if attr not in ['ing', 'sty']:
             return
@@ -92,10 +59,36 @@ class RecipeBook:
                         matches.append(name)
             if len(matches) > 0:
                 recipes[recipe] = matches
-        recipes = {r: l for r, l in sorted(recipes.items(), key=lambda item: len(item[1]), reverse=True)}
+        recipes = {r: l for r, l in sorted(recipes.items(), 
+            key=lambda item: len(item[1]), reverse=True)}
         return recipes
 
     def repr_JSON(self):
         return {'__recipe_book__': True, 'name': self.name, 'recipes': self.recipes}
+
+class RecipeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if hasattr(obj,'repr_JSON'):
+            return obj.repr_JSON()
+        else:
+            return json.JSONEncoder.default(self, obj)
+
+def recipe_decoder(dct):
+    if '__recipe__' in dct:
+        return Recipe(dct['name'], set(dct["ingredients"]), set(dct["styles"]))
+    elif '__recipe_book__' in dct:
+        return RecipeBook(dct['name'], dct['recipes'])
+    else:
+        return dct
+
+def write_JSON(content, file_path):
+    with open(file_path, "w") as data_file:
+        json.dump(content, data_file, cls=RecipeEncoder)
+
+def read_JSON(file_path):
+    with open(file_path) as data_file:
+        data = data_file.read()   
+        data_object = json.loads(data, object_hook=recipe_decoder)
+    return data_object
 
 if __name__ == '__main__': pass
