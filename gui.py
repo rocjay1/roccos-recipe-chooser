@@ -107,6 +107,8 @@ class RecipeApp:
 
         scrollbar.pack(side=RIGHT, fill=Y)
 
+    # Formatting helper methods
+
     def format_to_list(self, str):
         lst = str.split(",") 
         lst = list(map(lambda s: s.lower().strip(), lst))
@@ -115,6 +117,8 @@ class RecipeApp:
     def format_to_string(self, str):
         return str.lower().strip()
     
+    # Treeview helper methods
+
     def open_children(self, parent):
         self.recipe_treeview.item(parent, open=True)
         for child in self.recipe_treeview.get_children(parent):
@@ -125,22 +129,26 @@ class RecipeApp:
         for child in self.recipe_treeview.get_children(parent):
             self.open_children(child)
 
-    def delete_children(self):
+    def delete_all_children(self):
         self.recipe_treeview.delete(*self.recipe_treeview.get_children())
 
-    def populate_from_recipebook(self):
-        self.delete_children()
+    def insert_recipe(self, recipe):
+        self.recipe_treeview.insert('', 'end', f'name_{recipe}', text=f'{recipe}')
+        self.recipe_treeview.insert(f'name_{recipe}', 'end', f'ings_{recipe}', 
+            text="Ingredients")
+        for ingredient in self.db.recipes[recipe].ingredients:
+            self.recipe_treeview.insert(f'ings_{recipe}', 'end', f'ing_{ingredient}', 
+                text=f'{ingredient}')
+        self.recipe_treeview.insert(f'name_{recipe}', 'end', f'styles_{recipe}', text="Styles")
+        for style in self.db.recipes[recipe].styles:
+            self.recipe_treeview.insert(f'styles_{recipe}', 'end', f'style_{style}', text=f'{style}')
 
+    # Main methods
+
+    def populate_from_recipebook(self):
+        self.delete_all_children()
         for recipe in self.db.recipes:
-            self.recipe_treeview.insert('', 'end', f'name_{recipe}', text=f'{recipe}')
-            self.recipe_treeview.insert(f'name_{recipe}', 'end', f'ings_{recipe}', 
-                text="Ingredients")
-            for ingredient in self.db.recipes[recipe].ingredients:
-                self.recipe_treeview.insert(f'ings_{recipe}', 'end', f'ing_{ingredient}', 
-                    text=f'{ingredient}')
-            self.recipe_treeview.insert(f'name_{recipe}', 'end', f'styles_{recipe}', text="Styles")
-            for style in self.db.recipes[recipe].styles:
-                self.recipe_treeview.insert(f'styles_{recipe}', 'end', f'style_{style}', text=f'{style}')
+            self.insert_recipe(recipe)
 
     def select_recipe(self, event):
         # Refresh tree
@@ -163,8 +171,8 @@ class RecipeApp:
             # Populate ingredients and styles
             attrs = []
             for i in range(0, 2):
-                p_node = self.recipe_treeview.get_children(node)[i]
-                children = self.recipe_treeview.get_children(p_node)
+                sub_node = self.recipe_treeview.get_children(node)[i]
+                children = self.recipe_treeview.get_children(sub_node)
                 fin_str = ''
                 for child in children:
                     add_str = self.recipe_treeview.item(child)['text']
@@ -180,7 +188,7 @@ class RecipeApp:
             self.styles_entry.insert(END, attrs[1])
 
     def clear_text(self):
-        self.recipe_treeview.selection_remove(self.recipe_treeview.focus())
+        self.recipe_treeview.selection_remove(self.recipe_treeview.selection()[0])
         self.recipe_entry.delete(0, END)
         self.ings_entry.delete(0, END)
         self.styles_entry.delete(0, END)
@@ -190,8 +198,8 @@ class RecipeApp:
         ings = self.format_to_list(self.ings_text.get())
         styles = self.format_to_list(self.styles_text.get())
         self.db.add_recipe(name, ings, styles)
-        self.clear_text()
-        self.populate_from_recipebook()
+        self.insert_recipe(name)
+        self.recipe_treeview.selection_add(f'name_{name}')
         
 
 if __name__ == '__main__':
