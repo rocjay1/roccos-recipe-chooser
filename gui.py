@@ -58,10 +58,10 @@ class RecipeApp:
         get_styles_btn.pack(side=LEFT, padx=5)
 
         get_label.grid(row=0, column=0, sticky='w')
-        get_entry.grid(row=1, column=0, columnspan=3, sticky='ew')
-        get_btn.grid(row=1, column=3, sticky='w')
+        get_entry.grid(row=1, column=1, columnspan=3, sticky='ew')
+        get_btn.grid(row=2, column=1, pady=2)
 
-        sep1.grid(row=2, column=0, columnspan=4, sticky='nsew')
+        sep1.grid(row=3, column=0, columnspan=4, pady=5)
 
         recipe_label.grid(row=5, column=0, sticky='e')
         ings_label.grid(row=6, column=0, sticky='e')
@@ -89,20 +89,15 @@ class RecipeApp:
         self.recipe_treeview.column("#0", width=300)
         self.recipe_treeview.bind('<<TreeviewSelect>>', self.select_recipe)
 
-        scrollbar = ttk.Scrollbar(frame_lower, orient=VERTICAL, 
-            command=self.recipe_treeview.yview)
+        scrollbar = ttk.Scrollbar(frame_lower, orient=VERTICAL, command=self.recipe_treeview.yview)
         self.recipe_treeview.config(yscrollcommand=scrollbar.set)
-
-        ref_btn = ttk.Button(frame_lower, text="Refresh")
 
         # Geometry
         frame_lower.grid(row=1, column=0)
 
-        self.recipe_treeview.grid(row=0, column=0, sticky='nsew')
+        self.recipe_treeview.pack(side=LEFT, fill=BOTH, pady=15)
 
-        scrollbar.grid(row=0, column=0, sticky='nse')
-
-        ref_btn.grid(row=1, column=0, pady=10)
+        scrollbar.pack(side=RIGHT, fill=Y, pady=15)
 
     #############################  
     ########## Methods ########## 
@@ -214,7 +209,7 @@ class RecipeApp:
         name = self.format_to_string(self.recipe_text.get())
         if name in self.db.recipes:
             prompt = messagebox.askyesno("Update?", 
-            "A recipe with that name already exists. Woud you like to update it?")
+            "A recipe with that name already exists. Would you like to update it?")
             if prompt == True:
                 self.update_recipe()
             return
