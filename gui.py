@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 from backend import *
 
 class RecipeApp:
@@ -14,7 +15,7 @@ class RecipeApp:
 
         # Vars
         self.get_option = StringVar()
-        self.get_option.set('ing')
+        self.get_option.set('nm')
         self.get_text = StringVar()
         self.search_text = StringVar()
         self.recipe_text = StringVar()
@@ -23,23 +24,18 @@ class RecipeApp:
 
         # Widgets
         frame_upper = ttk.Frame(root)
-        frame_upper.config(padding=(10,15))
+        frame_upper.config(padding=(10,5))
+
+        btn_frame = ttk.Frame(frame_upper) # Radiobuttons
+        get_name_btn = ttk.Radiobutton(btn_frame, text="Name", variable=self.get_option, value='nm')
+        get_ings_btn = ttk.Radiobutton(btn_frame, text="Ingredients", variable=self.get_option, value='ing')
+        get_styles_btn = ttk.Radiobutton(btn_frame, text="Styles", variable=self.get_option, value='sty')
 
         get_label = ttk.Label(frame_upper, text="Get recipes by:")
-        get_ings_btn = ttk.Radiobutton(frame_upper, text="Ingredients", 
-            variable=self.get_option, value='ing')
-        get_styles_btn = ttk.Radiobutton(frame_upper, text="Styles", 
-            variable=self.get_option, value='sty')
         get_entry = ttk.Entry(frame_upper)
         get_btn = ttk.Button(frame_upper, text='Submit')
 
         sep1 = ttk.Label(frame_upper, text="")
-
-        search_label = ttk.Label(frame_upper, text='Search by name:')
-        search_entry = ttk.Entry(frame_upper)
-        search_btn = ttk.Button(frame_upper, text='Search')
-
-        sep2 = ttk.Label(frame_upper, text="")
 
         recipe_label = ttk.Label(frame_upper, text="Recipe:")
         ings_label = ttk.Label(frame_upper, text="Ingredients:")
@@ -47,27 +43,25 @@ class RecipeApp:
         self.recipe_entry = ttk.Entry(frame_upper, textvariable=self.recipe_text)
         self.ings_entry = ttk.Entry(frame_upper, textvariable=self.ings_text)
         self.styles_entry = ttk.Entry(frame_upper, textvariable=self.styles_text)
-        add_btn = ttk.Button(frame_upper, text='Add', command=self.add_recipe)
+
+        add_btn = ttk.Button(frame_upper, text='Add', command=self.add_recipe) # Action buttons
         remove_btn = ttk.Button(frame_upper, text='Remove')
         update_btn = ttk.Button(frame_upper, text='Update', command=self.update_recipe)
         clear_btn = ttk.Button(frame_upper, text='Clear', command=self.clear_text)
 
         # Geometry
-        frame_upper.grid(row=0, column=0)
+        frame_upper.grid(row=0, column=0, sticky='nsew')
+
+        btn_frame.grid(row=0, column=1, columnspan=3, sticky='w', pady=10)
+        get_name_btn.pack(side=LEFT, padx=5)
+        get_ings_btn.pack(side=LEFT, padx=5)
+        get_styles_btn.pack(side=LEFT, padx=5)
 
         get_label.grid(row=0, column=0, sticky='w')
-        get_ings_btn.grid(row=0, column=1, sticky='e', padx=5, pady=5)
-        get_styles_btn.grid(row=0, column=2, sticky='w', padx=5, pady=5)
         get_entry.grid(row=1, column=0, columnspan=3, sticky='ew')
         get_btn.grid(row=1, column=3, sticky='w')
 
-        sep1.grid(row=2, column=0, columnspan=4, sticky='nsew', pady=10)
-
-        search_label.grid(row=3, column=0, sticky='e')
-        search_entry.grid(row=3, column=1, columnspan=2, sticky='w')
-        search_btn.grid(row=3, column=3, sticky='w')
-
-        sep2.grid(row=4, column=0, columnspan=4, sticky='nsew', pady=10)
+        sep1.grid(row=2, column=0, columnspan=4, sticky='nsew')
 
         recipe_label.grid(row=5, column=0, sticky='e')
         ings_label.grid(row=6, column=0, sticky='e')
@@ -75,6 +69,7 @@ class RecipeApp:
         self.recipe_entry.grid(row=5, column=1, columnspan=3, sticky='ew')
         self.ings_entry.grid(row=6, column=1, columnspan=3, sticky='ew')
         self.styles_entry.grid(row=7, column=1, columnspan=3, sticky='ew')
+
         add_btn.grid(row=8, column=0, sticky="e", pady=10)
         remove_btn.grid(row=8, column=1, sticky="ew")
         update_btn.grid(row=8, column=2, sticky="ew")
@@ -88,22 +83,30 @@ class RecipeApp:
 
         # Widgets
         frame_lower = ttk.Frame(root)
-        frame_lower.config(padding=(10,18))
+        frame_lower.config(padding=(10,5))
 
-        self.recipe_treeview = ttk.Treeview(frame_lower)
-        self.recipe_treeview.column("#0", width=250)
+        self.recipe_treeview = ttk.Treeview(frame_lower, height=12)
+        self.recipe_treeview.column("#0", width=300)
         self.recipe_treeview.bind('<<TreeviewSelect>>', self.select_recipe)
 
         scrollbar = ttk.Scrollbar(frame_lower, orient=VERTICAL, 
             command=self.recipe_treeview.yview)
         self.recipe_treeview.config(yscrollcommand=scrollbar.set)
 
+        ref_btn = ttk.Button(frame_lower, text="Refresh")
+
         # Geometry
-        frame_lower.grid(row=0, column=1, sticky='ns')
+        frame_lower.grid(row=1, column=0)
 
-        self.recipe_treeview.pack(side=LEFT, fill=Y)
+        self.recipe_treeview.grid(row=0, column=0, sticky='nsew')
 
-        scrollbar.pack(side=RIGHT, fill=Y)
+        scrollbar.grid(row=0, column=0, sticky='nse')
+
+        ref_btn.grid(row=1, column=0, pady=10)
+
+    #############################  
+    ########## Methods ########## 
+    #############################  
 
     # Formatting helper methods
 
@@ -134,13 +137,13 @@ class RecipeApp:
         self.recipe_treeview.insert('', str(index), f'name_{recipe}', text=f'{recipe}')
 
         self.recipe_treeview.insert(f'name_{recipe}', 'end', 
-            f'name_{recipe}_ing', text="Ingredients")
+            f'name_{recipe}_ing', text="ingredients")
         for ingredient in self.db.recipes[recipe].ingredients:
             self.recipe_treeview.insert(f'name_{recipe}_ing', 'end', 
                 f'name_{recipe}_ing_{ingredient}', text=f'{ingredient}')
 
         self.recipe_treeview.insert(f'name_{recipe}', 'end', 
-            f'name_{recipe}_style', text="Styles")
+            f'name_{recipe}_style', text="styles")
         for style in self.db.recipes[recipe].styles:
             self.recipe_treeview.insert(f'name_{recipe}_style', 'end', 
                 f'name_{recipe}_style_{style}', text=f'{style}')
@@ -148,11 +151,13 @@ class RecipeApp:
     def delete_recipe(self, recipe):
         self.recipe_treeview.delete(f'name_{recipe}')
 
-    # Main methods
+    # Main methods/callbacks
 
-    def populate_from_recipebook(self):
+    def populate_from_recipebook(self, recipes=[]):
+        if not recipes:
+            recipes = self.db.recipes
         self.delete_all_children()
-        for recipe in self.db.recipes:
+        for recipe in recipes:
             self.insert_recipe(recipe)
 
     def select_recipe(self, event):
@@ -195,25 +200,36 @@ class RecipeApp:
             self.styles_entry.insert(END, attrs[1])
 
     def clear_text(self):
-        self.recipe_treeview.selection_remove(self.recipe_treeview.selection()[0])
+        if not self.recipe_treeview.selection():
+            pass
+        else:
+            # If something is selected, unselect
+            self.recipe_treeview.selection_remove(self.recipe_treeview.selection()[0])
         self.recipe_entry.delete(0, END)
         self.ings_entry.delete(0, END)
         self.styles_entry.delete(0, END)
 
     def add_recipe(self):
+        # If the recipe already exists, prompt user for update instead of add
         name = self.format_to_string(self.recipe_text.get())
+        if name in self.db.recipes:
+            prompt = messagebox.askyesno("Update?", 
+            "A recipe with that name already exists. Woud you like to update it?")
+            if prompt == True:
+                self.update_recipe()
+            return
+        # Else add as usual
         ings = self.format_to_list(self.ings_text.get())
         styles = self.format_to_list(self.styles_text.get())
-        # If name is already in recipe book...
-
-        # Else...
         self.db.add_recipe(name, ings, styles)
         self.insert_recipe(name)
         self.recipe_treeview.selection_set(f'name_{name}')
 
     def update_recipe(self):
-        # If nothing selected...
-        
+        # To update, something must be selected
+        if not self.recipe_treeview.selection():
+            messagebox.showerror('No recipe selected', 'Please select a recipe to update')
+            return
         name = self.format_to_string(self.recipe_text.get())
         ings = self.format_to_list(self.ings_text.get())
         styles = self.format_to_list(self.styles_text.get())
