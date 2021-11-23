@@ -2,10 +2,6 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from backend import *
-import os
-import sys
-
-os.chdir(sys._MEIPASS)
 
 class RecipeApp:
 
