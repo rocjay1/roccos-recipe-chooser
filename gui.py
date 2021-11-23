@@ -7,19 +7,27 @@ class RecipeApp:
 
     def __init__(self, root):
 
-        # ADD SAVE OPTION
+        root.title("Recipe Chooser v1")
+        root.resizable(False, False)
 
-        self.db = read_JSON("recipes.json") # Add try/except
+        self.db = self.load("recipes.json") 
 
         #################################
         ########## Upper frame ##########
         #################################
 
+        # Top menu
+        root.option_add('*tearOff', False)
+        menubar = Menu(root)
+        root.config(menu=menubar)
+        file = Menu(menubar)
+        menubar.add_cascade(menu=file, label='File')
+        file.add_command(label='Save', command=lambda: self.save(self.db, 'recipes.json'))
+
         # Vars
-        self.get_option = StringVar() # Rename the get stuff to search
-        self.get_option.set('nm')
-        self.get_text = StringVar()
-        # self.search_text = StringVar()
+        self.search_option = StringVar() 
+        self.search_option.set('nm')
+        self.search_text = StringVar()
         self.recipe_text = StringVar()
         self.ings_text = StringVar()
         self.styles_text = StringVar()
@@ -29,13 +37,13 @@ class RecipeApp:
         frame_upper.config(padding=(10,5))
 
         btn_frame = ttk.Frame(frame_upper) # Radiobuttons
-        get_name_btn = ttk.Radiobutton(btn_frame, text="Name", variable=self.get_option, value='nm')
-        get_ings_btn = ttk.Radiobutton(btn_frame, text="Ingredients", variable=self.get_option, value='ing')
-        get_styles_btn = ttk.Radiobutton(btn_frame, text="Styles", variable=self.get_option, value='sty')
+        search_name_btn = ttk.Radiobutton(btn_frame, text="Name", variable=self.search_option, value='nm')
+        search_ings_btn = ttk.Radiobutton(btn_frame, text="Ingredients", variable=self.search_option, value='ing')
+        search_styles_btn = ttk.Radiobutton(btn_frame, text="Styles", variable=self.search_option, value='sty')
 
-        get_label = ttk.Label(frame_upper, text="Get recipes by:")
-        self.get_entry = ttk.Entry(frame_upper, textvariable=self.get_text)
-        get_btn = ttk.Button(frame_upper, text='Submit', command=self.get_recipes)
+        search_label = ttk.Label(frame_upper, text="Get recipes by:")
+        self.search_entry = ttk.Entry(frame_upper, textvariable=self.search_text)
+        search_btn = ttk.Button(frame_upper, text='Submit', command=self.get_recipes)
 
         sep1 = ttk.Label(frame_upper, text="")
 
@@ -55,13 +63,13 @@ class RecipeApp:
         frame_upper.grid(row=0, column=0, sticky='nsew')
 
         btn_frame.grid(row=0, column=1, columnspan=3, sticky='w', pady=10)
-        get_name_btn.pack(side=LEFT, padx=5)
-        get_ings_btn.pack(side=LEFT, padx=5)
-        get_styles_btn.pack(side=LEFT, padx=5)
+        search_name_btn.pack(side=LEFT, padx=5)
+        search_ings_btn.pack(side=LEFT, padx=5)
+        search_styles_btn.pack(side=LEFT, padx=5)
 
-        get_label.grid(row=0, column=0, sticky='w')
-        self.get_entry.grid(row=1, column=1, columnspan=3, sticky='ew')
-        get_btn.grid(row=2, column=1, pady=2)
+        search_label.grid(row=0, column=0, sticky='w')
+        self.search_entry.grid(row=1, column=1, columnspan=3, sticky='ew')
+        search_btn.grid(row=2, column=1, pady=2)
 
         sep1.grid(row=3, column=0, columnspan=4, pady=5)
 
@@ -87,8 +95,7 @@ class RecipeApp:
 
         self.recipe_treeview = ttk.Treeview(frame_lower, height=12)
         self.recipe_treeview.column("#0", width=300)
-        self.recipe_treeview.bind('<<TreeviewSelect>>', self.select_recipe)
-
+        self.recipe_treeview.bind('<<TreeviewSelect>>', self.select_action)
         scrollbar = ttk.Scrollbar(frame_lower, orient=VERTICAL, command=self.recipe_treeview.yview)
         self.recipe_treeview.config(yscrollcommand=scrollbar.set)
 
@@ -96,7 +103,6 @@ class RecipeApp:
         frame_lower.grid(row=1, column=0)
 
         self.recipe_treeview.pack(side=LEFT, fill=BOTH, pady=15)
-
         scrollbar.pack(side=RIGHT, fill=Y, pady=15)
 
     #############################  
@@ -149,12 +155,24 @@ class RecipeApp:
 
     # Main methods/callbacks
 
+    def load(self, path):
+        try:
+            return read_JSON(path)
+        except:
+            return RecipeBook()
+
+    def save(self, content, path):
+        try:
+            write_JSON(content, path)
+        except Exception as e:
+            print(e)
+
     def populate_list(self, recipes=[]):
         self.delete_all_children()
         for recipe in recipes:
             self.insert_tree_recipe(recipe)
 
-    def select_recipe(self, event):
+    def select_action(self, event):
         # Refresh tree
         for child in self.recipe_treeview.get_children():
             self.close_node_children(child)
@@ -202,7 +220,7 @@ class RecipeApp:
         self.recipe_entry.delete(0, END)
         self.ings_entry.delete(0, END)
         self.styles_entry.delete(0, END)
-        self.get_entry.delete(0, END)
+        self.search_entry.delete(0, END)
         self.populate_list(self.db.recipes)
 
     def add_recipe(self):
@@ -245,19 +263,19 @@ class RecipeApp:
         self.recipe_treeview.selection_set(f'name_{name}')
         
     def get_recipes(self):
-        choice = self.get_option.get()
-        if choice == 'nm':
-            search = self.format_to_string(self.get_text.get())
-            list_items = self.db.check_recipe(search)
-            self.populate_list(recipes=list_items)
+        search_choice = self.search_option.get()
+        if search_choice == 'nm':
+            search_input = self.format_to_string(self.search_text.get())
+            list_items = self.db.check_recipe(search_input)
+            self.populate_list(list_items)
         else:
-            search = self.format_to_list(self.get_text.get())
-            list_items = self.db.get_recipes_by_attr(choice, search)
-            self.populate_list(recipes=list_items)
+            search_input = self.format_to_list(self.search_text.get())
+            list_items = self.db.get_recipes_by_attr(search_choice, search_input)
+            self.populate_list(list_items)
             
 
 if __name__ == '__main__':
-    master = Tk()
-    app = RecipeApp(master)
+    root = Tk()
+    app = RecipeApp(root)
     app.populate_list(app.db.recipes)
-    master.mainloop()
+    root.mainloop()

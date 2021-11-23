@@ -1,1 +1,3 @@
-# roccos-recipe-chooser
+# Recipe Chooser App
+
+A small app to store recipes along with their ingredients/styles. The main functionality is to input a list of indgredients separated by commas and get a list of recipes containing those ingredients, ordered by how many they contain. This version has a Tkinter frontend GUI and a JSON-based backend. The app is currently sensitive to spelling, so take care when inputting information. Updates will be made in the near future.
