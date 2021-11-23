@@ -7,17 +7,19 @@ class RecipeApp:
 
     def __init__(self, root):
 
-        self.db = read_JSON("recipes.json")
+        # ADD SAVE OPTION
+
+        self.db = read_JSON("recipes.json") # Add try/except
 
         #################################
         ########## Upper frame ##########
         #################################
 
         # Vars
-        self.get_option = StringVar()
+        self.get_option = StringVar() # Rename the get stuff to search
         self.get_option.set('nm')
         self.get_text = StringVar()
-        self.search_text = StringVar()
+        # self.search_text = StringVar()
         self.recipe_text = StringVar()
         self.ings_text = StringVar()
         self.styles_text = StringVar()
@@ -32,8 +34,8 @@ class RecipeApp:
         get_styles_btn = ttk.Radiobutton(btn_frame, text="Styles", variable=self.get_option, value='sty')
 
         get_label = ttk.Label(frame_upper, text="Get recipes by:")
-        get_entry = ttk.Entry(frame_upper)
-        get_btn = ttk.Button(frame_upper, text='Submit')
+        self.get_entry = ttk.Entry(frame_upper, textvariable=self.get_text)
+        get_btn = ttk.Button(frame_upper, text='Submit', command=self.get_recipes)
 
         sep1 = ttk.Label(frame_upper, text="")
 
@@ -45,7 +47,7 @@ class RecipeApp:
         self.styles_entry = ttk.Entry(frame_upper, textvariable=self.styles_text)
 
         add_btn = ttk.Button(frame_upper, text='Add', command=self.add_recipe) # Action buttons
-        remove_btn = ttk.Button(frame_upper, text='Remove')
+        remove_btn = ttk.Button(frame_upper, text='Remove', command=self.remove_recipe)
         update_btn = ttk.Button(frame_upper, text='Update', command=self.update_recipe)
         clear_btn = ttk.Button(frame_upper, text='Clear', command=self.clear_text)
 
@@ -58,7 +60,7 @@ class RecipeApp:
         get_styles_btn.pack(side=LEFT, padx=5)
 
         get_label.grid(row=0, column=0, sticky='w')
-        get_entry.grid(row=1, column=1, columnspan=3, sticky='ew')
+        self.get_entry.grid(row=1, column=1, columnspan=3, sticky='ew')
         get_btn.grid(row=2, column=1, pady=2)
 
         sep1.grid(row=3, column=0, columnspan=4, pady=5)
@@ -78,8 +80,6 @@ class RecipeApp:
         ################################# 
         ########## Lower frame ########## 
         ################################# 
-
-        # Vars
 
         # Widgets
         frame_lower = ttk.Frame(root)
@@ -104,6 +104,7 @@ class RecipeApp:
     #############################  
 
     # Formatting helper methods
+    # Make these static methods
 
     def format_to_list(self, str):
         lst = str.split(",") 
@@ -128,7 +129,7 @@ class RecipeApp:
     def delete_all_children(self):
         self.recipe_treeview.delete(*self.recipe_treeview.get_children())
 
-    def insert_recipe(self, recipe, index='end'):
+    def insert_tree_recipe(self, recipe, index='end'):
         self.recipe_treeview.insert('', str(index), f'name_{recipe}', text=f'{recipe}')
 
         self.recipe_treeview.insert(f'name_{recipe}', 'end', 
@@ -143,17 +144,15 @@ class RecipeApp:
             self.recipe_treeview.insert(f'name_{recipe}_style', 'end', 
                 f'name_{recipe}_style_{style}', text=f'{style}')
     
-    def delete_recipe(self, recipe):
+    def delete_tree_recipe(self, recipe):
         self.recipe_treeview.delete(f'name_{recipe}')
 
     # Main methods/callbacks
 
-    def populate_from_recipebook(self, recipes=[]):
-        if not recipes:
-            recipes = self.db.recipes
+    def populate_list(self, recipes=[]):
         self.delete_all_children()
         for recipe in recipes:
-            self.insert_recipe(recipe)
+            self.insert_tree_recipe(recipe)
 
     def select_recipe(self, event):
         # Refresh tree
@@ -198,27 +197,38 @@ class RecipeApp:
         if not self.recipe_treeview.selection():
             pass
         else:
-            # If something is selected, unselect
+            # If something is selected, unselect it
             self.recipe_treeview.selection_remove(self.recipe_treeview.selection()[0])
         self.recipe_entry.delete(0, END)
         self.ings_entry.delete(0, END)
         self.styles_entry.delete(0, END)
+        self.get_entry.delete(0, END)
+        self.populate_list(self.db.recipes)
 
     def add_recipe(self):
-        # If the recipe already exists, prompt user for update instead of add
         name = self.format_to_string(self.recipe_text.get())
-        if name in self.db.recipes:
+        if name == '':
+            messagebox.showerror('No name', 'Please name the recipe')
+        elif name in self.db.recipes:
             prompt = messagebox.askyesno("Update?", 
             "A recipe with that name already exists. Would you like to update it?")
             if prompt == True:
                 self.update_recipe()
-            return
-        # Else add as usual
-        ings = self.format_to_list(self.ings_text.get())
-        styles = self.format_to_list(self.styles_text.get())
-        self.db.add_recipe(name, ings, styles)
-        self.insert_recipe(name)
-        self.recipe_treeview.selection_set(f'name_{name}')
+        else:
+            ings = self.format_to_list(self.ings_text.get())
+            styles = self.format_to_list(self.styles_text.get())
+            self.db.add_recipe(name, ings, styles)
+            self.insert_tree_recipe(name)
+            self.recipe_treeview.selection_set(f'name_{name}')
+
+    def remove_recipe(self):
+        name = self.format_to_string(self.recipe_text.get())
+        if name in self.db.recipes:
+            self.db.remove_recipe(name)
+            self.delete_tree_recipe(name)
+            self.clear_text()
+        else:
+            messagebox.showerror('Recipe does not exist', 'That recipe does not exist')
 
     def update_recipe(self):
         # To update, something must be selected
@@ -230,13 +240,24 @@ class RecipeApp:
         styles = self.format_to_list(self.styles_text.get())
         self.db.update_recipe(sel_recipe, name, ings, styles)
         i = self.recipe_treeview.index(f'name_{sel_recipe}')
-        self.delete_recipe(sel_recipe)
-        self.insert_recipe(name, i)
+        self.delete_tree_recipe(sel_recipe)
+        self.insert_tree_recipe(name, i)
         self.recipe_treeview.selection_set(f'name_{name}')
         
+    def get_recipes(self):
+        choice = self.get_option.get()
+        if choice == 'nm':
+            search = self.format_to_string(self.get_text.get())
+            list_items = self.db.check_recipe(search)
+            self.populate_list(recipes=list_items)
+        else:
+            search = self.format_to_list(self.get_text.get())
+            list_items = self.db.get_recipes_by_attr(choice, search)
+            self.populate_list(recipes=list_items)
+            
 
 if __name__ == '__main__':
     master = Tk()
     app = RecipeApp(master)
-    app.populate_from_recipebook()
+    app.populate_list(app.db.recipes)
     master.mainloop()

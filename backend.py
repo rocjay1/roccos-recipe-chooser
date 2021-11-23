@@ -22,7 +22,9 @@ class RecipeBook:
 
     def check_recipe(self, recipe):
         if recipe in self.recipes:
-            return True
+            return [recipe]
+        else:
+            return []
 
     def add_recipe(self, name, ingredients, styles):
         if self.check_recipe(name):
@@ -30,7 +32,7 @@ class RecipeBook:
         new_recipe = Recipe(name, set(ingredients), set(styles))
         self.recipes[name] = new_recipe
 
-    def delete_recipe(self, recipe):
+    def remove_recipe(self, recipe):
         if self.check_recipe(recipe):
             self.recipes.pop(recipe)
 
