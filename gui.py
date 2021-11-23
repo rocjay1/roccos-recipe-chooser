@@ -2,6 +2,10 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from backend import *
+import os
+import sys
+
+os.chdir(sys._MEIPASS)
 
 class RecipeApp:
 
@@ -22,7 +26,7 @@ class RecipeApp:
         root.config(menu=menubar)
         file = Menu(menubar)
         menubar.add_cascade(menu=file, label='File')
-        file.add_command(label='Save', command=lambda: self.save(self.db, 'recipes.json'))
+        file.add_command(label='Save', command=lambda: self.save(self.db, "recipes.json"))
 
         # Vars
         self.search_option = StringVar() 
@@ -241,13 +245,13 @@ class RecipeApp:
 
     def remove_recipe(self):
         name = self.format_to_string(self.recipe_text.get())
-        if name in self.db.recipes:
-            self.db.remove_recipe(name)
-            self.delete_tree_recipe(name)
-            self.clear_text()
-        else:
+        if name not in self.db.recipes:
             messagebox.showerror('Recipe does not exist', 'That recipe does not exist')
-
+            return
+        self.db.remove_recipe(name)
+        self.delete_tree_recipe(name)
+        self.clear_text()
+            
     def update_recipe(self):
         # To update, something must be selected
         if not self.recipe_treeview.selection():
