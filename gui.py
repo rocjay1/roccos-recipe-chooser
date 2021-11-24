@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 from backend import *
+import os
 
 class RecipeApp:
 
@@ -11,7 +12,7 @@ class RecipeApp:
         root.title("Recipe Chooser v1")
         root.resizable(False, False)
 
-        self.db = read_JSON('recipes.json')
+        self.db = read_JSON('/Users/roccodavino/Documents/GitHub/roccos-recipe-chooser/db.json')
 
         self.save_filename = '' # used for file open/save functionality
 
@@ -173,7 +174,7 @@ class RecipeApp:
         #     except Exception as e:
         #         print(e)
         try:
-            write_JSON(content, 'recipes.json')
+            write_JSON(content, '/Users/roccodavino/Documents/GitHub/roccos-recipe-chooser/db.json')
         except Exception as e:
             print(e)
 
