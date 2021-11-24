@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter import filedialog
 from backend import *
 
 class RecipeApp:
@@ -10,7 +11,9 @@ class RecipeApp:
         root.title("Recipe Chooser v1")
         root.resizable(False, False)
 
-        self.db = self.load("recipes.json") 
+        self.db = RecipeBook() 
+
+        self.save_filename = '' # used for file open/save functionality
 
         #################################
         ########## Upper frame ##########
@@ -22,7 +25,10 @@ class RecipeApp:
         root.config(menu=menubar)
         file = Menu(menubar)
         menubar.add_cascade(menu=file, label='File')
-        file.add_command(label='Save', command=lambda: self.save(self.db, "recipes.json"))
+        file.add_command(label="Open...", command=lambda: self.open())
+        file.add_separator()
+        file.add_command(label='Save', command=lambda: self.save(self.db))
+        file.add_command(label='Save as...', command=lambda: self.save_as(self.db))
 
         # Vars
         self.search_option = StringVar() 
@@ -37,9 +43,12 @@ class RecipeApp:
         frame_upper.config(padding=(10,5))
 
         btn_frame = ttk.Frame(frame_upper) # Radiobuttons
-        search_name_btn = ttk.Radiobutton(btn_frame, text="Name", variable=self.search_option, value='nm')
-        search_ings_btn = ttk.Radiobutton(btn_frame, text="Ingredients", variable=self.search_option, value='ing')
-        search_styles_btn = ttk.Radiobutton(btn_frame, text="Styles", variable=self.search_option, value='sty')
+        search_name_btn = ttk.Radiobutton(btn_frame, text="Name", 
+                                    variable=self.search_option, value='nm')
+        search_ings_btn = ttk.Radiobutton(btn_frame, text="Ingredients", 
+                                    variable=self.search_option, value='ing')
+        search_styles_btn = ttk.Radiobutton(btn_frame, text="Styles", 
+                                    variable=self.search_option, value='sty')
 
         search_label = ttk.Label(frame_upper, text="Get recipes by:")
         self.search_entry = ttk.Entry(frame_upper, textvariable=self.search_text)
@@ -139,33 +148,50 @@ class RecipeApp:
         self.recipe_treeview.insert('', str(index), f'name_{recipe}', text=f'{recipe}')
 
         self.recipe_treeview.insert(f'name_{recipe}', 'end', 
-            f'name_{recipe}_ing', text="ingredients")
+                                f'name_{recipe}_ing', text="ingredients")
         for ingredient in self.db.recipes[recipe].ingredients:
             self.recipe_treeview.insert(f'name_{recipe}_ing', 'end', 
-                f'name_{recipe}_ing_{ingredient}', text=f'{ingredient}')
+                                    f'name_{recipe}_ing_{ingredient}', text=f'{ingredient}')
 
         self.recipe_treeview.insert(f'name_{recipe}', 'end', 
-            f'name_{recipe}_style', text="styles")
+                                f'name_{recipe}_style', text="styles")
         for style in self.db.recipes[recipe].styles:
             self.recipe_treeview.insert(f'name_{recipe}_style', 'end', 
-                f'name_{recipe}_style_{style}', text=f'{style}')
+                                    f'name_{recipe}_style_{style}', text=f'{style}')
     
     def delete_tree_recipe(self, recipe):
         self.recipe_treeview.delete(f'name_{recipe}')
 
     # Main methods/callbacks
 
-    def load(self, path):
-        try:
-            return read_JSON(path)
-        except:
-            return RecipeBook()
+    def save(self, content):
+        if not self.save_filename:
+            self.save_as(content)
+        else:
+            try:
+                write_JSON(content, self.save_filename)
+            except Exception as e:
+                print(e)
 
-    def save(self, content, path):
-        try:
-            write_JSON(content, path)
-        except Exception as e:
-            print(e)
+    def save_as(self, content):
+        self.save_filename = filedialog.asksaveasfilename()
+        if self.save_filename:
+            try:
+                write_JSON(content, self.save_filename)
+            except Exception as e:
+                print(e)
+        
+    def open(self):
+        open_filename = filedialog.askopenfile()
+        if open_filename:
+            open_filename = open_filename.name
+            self.save_filename = open_filename
+            try:
+                self.db = read_JSON(open_filename)
+                self.clear_text()
+                self.populate_list(self.db.recipes)
+            except Exception as e:
+                print(e)
 
     def populate_list(self, recipes=[]):
         self.delete_all_children()
@@ -228,9 +254,9 @@ class RecipeApp:
         if name == '':
             messagebox.showerror('No name', 'Please name the recipe')
         elif name in self.db.recipes:
-            prompt = messagebox.askyesno("Update?", 
-            "A recipe with that name already exists. Would you like to update it?")
-            if prompt == True:
+            ans = messagebox.askyesno("Update?", 
+                "A recipe with that name already exists. Would you like to update it?")
+            if ans == True:
                 self.update_recipe()
         else:
             ings = self.format_to_list(self.ings_text.get())
