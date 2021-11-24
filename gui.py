@@ -11,7 +11,7 @@ class RecipeApp:
         root.title("Recipe Chooser v1")
         root.resizable(False, False)
 
-        self.db = RecipeBook() 
+        self.db = read_JSON('recipes.json')
 
         self.save_filename = '' # used for file open/save functionality
 
@@ -25,10 +25,10 @@ class RecipeApp:
         root.config(menu=menubar)
         file = Menu(menubar)
         menubar.add_cascade(menu=file, label='File')
-        file.add_command(label="Open...", command=lambda: self.open())
-        file.add_separator()
+        # file.add_command(label="Open...", command=lambda: self.open())
+        # file.add_separator()
         file.add_command(label='Save', command=lambda: self.save(self.db))
-        file.add_command(label='Save as...', command=lambda: self.save_as(self.db))
+        # file.add_command(label='Save as...', command=lambda: self.save_as(self.db))
 
         # Vars
         self.search_option = StringVar() 
@@ -165,33 +165,37 @@ class RecipeApp:
     # Main methods/callbacks
 
     def save(self, content):
-        if not self.save_filename:
-            self.save_as(content)
-        else:
-            try:
-                write_JSON(content, self.save_filename)
-            except Exception as e:
-                print(e)
+        # if not self.save_filename:
+        #     self.save_as(content)
+        # else:
+        #     try:
+        #         write_JSON(content, self.save_filename)
+        #     except Exception as e:
+        #         print(e)
+        try:
+            write_JSON(content, 'recipes.json')
+        except Exception as e:
+            print(e)
 
-    def save_as(self, content):
-        self.save_filename = filedialog.asksaveasfilename()
-        if self.save_filename:
-            try:
-                write_JSON(content, self.save_filename)
-            except Exception as e:
-                print(e)
+    # def save_as(self, content):
+    #     self.save_filename = filedialog.asksaveasfilename()
+    #     if self.save_filename:
+    #         try:
+    #             write_JSON(content, self.save_filename)
+    #         except Exception as e:
+    #             print(e)
         
-    def open(self):
-        open_filename = filedialog.askopenfile()
-        if open_filename:
-            open_filename = open_filename.name
-            self.save_filename = open_filename
-            try:
-                self.db = read_JSON(open_filename)
-                self.clear_text()
-                self.populate_list(self.db.recipes)
-            except Exception as e:
-                print(e)
+    # def open(self):
+    #     open_filename = filedialog.askopenfile()
+    #     if open_filename:
+    #         open_filename = open_filename.name
+    #         self.save_filename = open_filename
+    #         try:
+    #             self.db = read_JSON(open_filename)
+    #             self.clear_text()
+    #             self.populate_list(self.db.recipes)
+    #         except Exception as e:
+    #             print(e)
 
     def populate_list(self, recipes=[]):
         self.delete_all_children()
