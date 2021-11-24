@@ -1,4 +1,0 @@
-([('Recipe Chooser',
-   '/Users/roccodavino/Documents/GitHub/roccos-recipe-chooser/dist/Recipe '
-   'Chooser',
-   'EXECUTABLE')],)
