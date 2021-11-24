@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter import filedialog
 from backend import *
 
 class RecipeApp:
@@ -10,7 +11,9 @@ class RecipeApp:
         root.title("Recipe Chooser v1")
         root.resizable(False, False)
 
-        self.db = self.load("recipes.json") 
+        self.db = RecipeBook()
+
+        self.save_filename = ''
 
         #################################
         ########## Upper frame ##########
@@ -22,7 +25,10 @@ class RecipeApp:
         root.config(menu=menubar)
         file = Menu(menubar)
         menubar.add_cascade(menu=file, label='File')
-        file.add_command(label='Save', command=lambda: self.save(self.db, "recipes.json"))
+        file.add_command(label="Open...", command=lambda: self.open())
+        file.add_separator()
+        file.add_command(label='Save', command=lambda: self.save(self.db))
+        file.add_command(label='Save as...', command=lambda: self.save_as(self.db))
 
         # Vars
         self.search_option = StringVar() 
@@ -155,17 +161,34 @@ class RecipeApp:
 
     # Main methods/callbacks
 
-    def load(self, path):
-        try:
-            return read_JSON(path)
-        except:
-            return RecipeBook()
+    def save(self, content):
+        if not self.save_filename:
+            self.save_as(content)
+        else:
+            try:
+                write_JSON(content, self.save_filename)
+            except Exception as e:
+                print(e)
 
-    def save(self, content, path):
-        try:
-            write_JSON(content, path)
-        except Exception as e:
-            print(e)
+    def save_as(self, content):
+        self.save_filename = filedialog.asksaveasfilename()
+        if self.save_filename:
+            try:
+                write_JSON(content, self.save_filename)
+            except Exception as e:
+                print(e)
+        
+    def open(self):
+        open_filename = filedialog.askopenfile()
+        if open_filename:
+            open_filename = open_filename.name
+            self.save_filename = open_filename
+            try:
+                self.db = read_JSON(open_filename)
+                self.clear_text()
+                self.populate_list(self.db.recipes)
+            except Exception as e:
+                print(e)
 
     def populate_list(self, recipes=[]):
         self.delete_all_children()
