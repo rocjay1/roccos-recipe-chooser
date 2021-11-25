@@ -67,7 +67,7 @@ class RecipeApp:
         add_btn = ttk.Button(frame_upper, text='Add', command=self.add_recipe) # Action buttons
         remove_btn = ttk.Button(frame_upper, text='Remove', command=self.remove_recipe)
         update_btn = ttk.Button(frame_upper, text='Update', command=self.update_recipe)
-        clear_btn = ttk.Button(frame_upper, text='Clear', command=self.clear_text)
+        clear_btn = ttk.Button(frame_upper, text='Clear', command=self.reset)
 
         # Geometry
         frame_upper.grid(row=0, column=0, sticky='nsew')
@@ -193,7 +193,7 @@ class RecipeApp:
     #         self.save_filename = open_filename
     #         try:
     #             self.db = read_JSON(open_filename)
-    #             self.clear_text()
+    #             self.reset()
     #             self.populate_list(self.db.recipes)
     #         except Exception as e:
     #             print(e)
@@ -242,7 +242,7 @@ class RecipeApp:
             self.styles_entry.delete(0, END)
             self.styles_entry.insert(END, attrs[1])
 
-    def clear_text(self):
+    def reset(self):
         if not self.recipe_treeview.selection():
             pass
         else:
@@ -277,7 +277,7 @@ class RecipeApp:
             return
         self.db.remove_recipe(name)
         self.delete_tree_recipe(name)
-        self.clear_text()
+        self.reset()
             
     def update_recipe(self):
         # To update, something must be selected
